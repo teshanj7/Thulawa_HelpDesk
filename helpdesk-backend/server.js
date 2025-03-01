@@ -1,41 +1,23 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const dotenv = require("dotenv");
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+const connectToDatabase = require('./config/database');
 
-dotenv.config(); // Load environment variables
+// Initializing the port number
+const port = process.env.PORT || 8070;
 
-const app = express();
-const PORT = process.env.PORT || 8070;
+// Connect to the database first, then start the server
+connectToDatabase(process.env.MONGODB_URL).then(() => {
+    const app = express();
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
+    // Middleware
+    app.use(cors());
+    app.use(express.json());
 
-// MongoDB Connection
-const URL = process.env.MONGODB_URL;
-
-mongoose.connect(URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    tls: true, // Ensures SSL/TLS connection
-    tlsInsecure: true, // Bypass TLS validation (use only if necessary)
-})
-.then(() => console.log("✅ MongoDB Connected Successfully!"))
-.catch((err) => {
-    console.error("❌ MongoDB Connection Failed:", err.message);
-    process.exit(1); // Exit process if unable to connect
+    // Server Connection
+    app.listen(port, () => {
+        console.log(`Server is up and running on port number ${port}`);
+    });
+}).catch(err => {
+    console.error("Failed to connect to the database. Server not started.");
 });
-
-// Event Listener for Database Connection
-const connection = mongoose.connection;
-connection.on("error", (err) => console.error("❌ MongoDB Error:", err));
-connection.once("open", () => console.log("🗄️ MongoDB Connection Established"));
-
-// Start Server
-app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
-});
-
-module.exports = app;
