@@ -2,7 +2,7 @@ let Issue = require('../Models/issue');
 
 const createIssue = async (req, res) => {
     const { UserId, studentName, studentEmail, studentRegistrationNo, studentFaculty, studentCampus, 
-        studentContactNo, issueType, issueMessage, issueAttachment, issueStatus, issueResolvedBy, issueCreatedDate, issueResolvedDate, issueResolvedMessage } = req.body;
+        studentContactNo, issueType, issueMessage, issueAttachment, issueStatus, issueResolvedBy, issueCreatedDate, issueResolvedDate, issueResolvedMessage, issuePriority } = req.body;
 
     const newIssue = new Issue({
         UserId,
@@ -19,7 +19,8 @@ const createIssue = async (req, res) => {
         issueResolvedBy,
         issueCreatedDate,   
         issueResolvedDate,
-        issueResolvedMessage
+        issueResolvedMessage,
+        issuePriority
     })
 
     if (!studentName || !studentEmail || !studentRegistrationNo || !studentFaculty || !studentCampus || !studentContactNo || !issueType || !issueMessage) {
@@ -155,4 +156,26 @@ const resolveIssue = async (req, res) => {
     }
 };
 
-module.exports = { createIssue, getAllIssuesByUserId, getAllIssues, updateIssue, deleteIssue, searchIssue, updateIssueStatus, resolveIssue };
+//update issue priority by id
+const updateIssuePriority = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { issuePriority } = req.body;
+
+        const updatedIssue = await Issue.findByIdAndUpdate(
+            id,
+            { issuePriority },
+            { new: true }
+        );
+
+        if (!updatedIssue) {
+            return res.status(404).json({ message: 'Issue not found' });
+        }
+
+        res.status(200).json({ message: 'Issue priority updated successfully', updatedIssue });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+module.exports = { createIssue, getAllIssuesByUserId, getAllIssues, updateIssue, deleteIssue, searchIssue, updateIssueStatus, resolveIssue, updateIssuePriority };

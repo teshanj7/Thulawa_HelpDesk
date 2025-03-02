@@ -61,6 +61,10 @@ const issueSchema = new Schema({
     issueResolvedMessage: {
         type: String,
         required: false
+    },
+    issuePriority: {
+        type: String,
+        required: false
     }
 })
 

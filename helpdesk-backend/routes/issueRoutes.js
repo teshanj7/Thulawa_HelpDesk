@@ -1,6 +1,6 @@
 const router = require("express").Router();
 
-const { createIssue, getAllIssuesByUserId, getAllIssues, updateIssue, deleteIssue, searchIssue, updateIssueStatus, resolveIssue } = require('../Controllers/issueController');
+const { createIssue, getAllIssuesByUserId, getAllIssues, updateIssue, deleteIssue, searchIssue, updateIssueStatus, resolveIssue, updateIssuePriority } = require('../Controllers/issueController');
 
 //create new issue
 router.post('/', createIssue);
@@ -25,6 +25,9 @@ router.patch('/updateIssueStatus/:id', updateIssueStatus);
 
 //resolve issue by id
 router.patch('/resolveIssue/:id', resolveIssue);
+
+//update issue priority by id
+router.patch('/updateIssuePriority/:id', updateIssuePriority);
 
 module.exports = router;
 
