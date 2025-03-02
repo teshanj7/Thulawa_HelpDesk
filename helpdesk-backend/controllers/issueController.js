@@ -4,6 +4,16 @@ const createIssue = async (req, res) => {
     const { UserId, studentName, studentEmail, studentRegistrationNo, studentFaculty, studentCampus, 
         studentContactNo, issueType, issueMessage, issueAttachment, issueStatus, issueResolvedBy, issueCreatedDate, issueResolvedDate, issueResolvedMessage, issuePriority } = req.body;
 
+    let calculatedPriority = issuePriority; 
+
+    // Assign issuePriority based on issueType
+    if (issueType === 'Request Documents' || issueType === 'Convocation Issue' || issueType === 'Campus Environment Issue'
+        || issueType === 'Module Content Issue' || issueType === 'Other Issue') {
+        calculatedPriority = 2;
+    } else if (issueType === 'Registration Issue' || issueType === 'Examination Issue' || issueType === 'Payment Issue') {
+        calculatedPriority = 1;
+    }
+
     const newIssue = new Issue({
         UserId,
         studentName,
@@ -20,7 +30,7 @@ const createIssue = async (req, res) => {
         issueCreatedDate,   
         issueResolvedDate,
         issueResolvedMessage,
-        issuePriority
+        issuePriority: calculatedPriority
     })
 
     if (!studentName || !studentEmail || !studentRegistrationNo || !studentFaculty || !studentCampus || !studentContactNo || !issueType || !issueMessage) {
@@ -48,13 +58,14 @@ const getAllIssuesByUserId = async (req, res) => {
     }
 };
 
-//view all issues
+// View all issues sorted by issuePriority (high to low)
 const getAllIssues = async (req, res) => {
-    try{
-        const issues = await Issue.find();
+    try {
+        const issues = await Issue.find().sort({ issuePriority: -1 });
         res.json(issues);
-    }catch(error){
-        res.status(500).json({error: "Internal Server Error"});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal server error" });
     }
 }
 
