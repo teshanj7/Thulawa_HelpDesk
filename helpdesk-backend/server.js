@@ -4,6 +4,7 @@ const app = express();
 require('dotenv').config();
 const connectToDatabase = require('./config/database');
 const { authenticate } = require("./middleware/authMiddleware");
+const { producer, connectProducer } = require('./kafka/kafkaConfig');
 
 // Initializing the port number
 const port = process.env.PORT || 8070;
@@ -12,15 +13,18 @@ const port = process.env.PORT || 8070;
 app.use(cors());
 app.use(express.json());
 
-// Connect to the database first, then start the server
-connectToDatabase(process.env.MONGODB_URL).then(() => {
+// Connect to the database first, then connect to Kafka, then start the server
+connectToDatabase(process.env.MONGODB_URL)
+  .then(() => connectProducer()) // Connect to Kafka producer
+  .then(() => {
     // Server Connection
     app.listen(port, () => {
-        console.log(`Server is up and running on port number ${port}`);
+      console.log(`Server is up and running on port number ${port}`);
     });
-}).catch(err => {
-    console.error("Failed to connect to the database. Server not started.");
-});
+  })
+  .catch(err => {
+    console.error("Failed to connect to the database or Kafka. Server not started.");
+  });
 
 // auth routes
 const authRouter = require('./routes/authRoutes');

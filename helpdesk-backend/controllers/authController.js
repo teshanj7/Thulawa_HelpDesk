@@ -14,8 +14,8 @@ const checkEmailExists = async (email) => {
 // Create an admin account
 const adminRegister = async (req, res) => {
     try {
-      const { Adminname, Email, Password } = req.body;
-      if (!Adminname || !Email || !Password) {
+      const { Adminname, Email, AdminType, Password } = req.body;
+      if (!Adminname || !Email || !AdminType || !Password) {
         return res.status(400).json({ error: "Missing fields" });
       }
 
@@ -25,7 +25,7 @@ const adminRegister = async (req, res) => {
       }
 
       const hashPassword = await bcrypt.hash(Password, 10);
-      const admin = new Admin({ Adminname, Email, Password: hashPassword });
+      const admin = new Admin({ Adminname, Email, AdminType, Password: hashPassword });
 
       const token = jwt.sign({ _id: admin._id }, 'secretkey123', { expiresIn: '60d' });
 

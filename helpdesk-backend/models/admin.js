@@ -10,9 +10,13 @@ const adminSchema = new Schema({
         type: String,
         required: true
     },
-    Type: {
+    UserType: {
         type: String,
         default : "admin"
+    },
+    AdminType: {
+        type: String,
+        required: true
     },
     Password: {
         type: String,
