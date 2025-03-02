@@ -63,7 +63,7 @@ const issueSchema = new Schema({
         required: false
     },
     issuePriority: {
-        type: String,
+        type: Number,
         required: false
     }
 })

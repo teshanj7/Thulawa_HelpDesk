@@ -41,3 +41,7 @@ app.use('/authenticate-role', authenticateRole);
 // issue routes
 const issueRouter = require('./Routes/issueRoutes');
 app.use('/issue', issueRouter);
+
+//issue type routes
+const issueTypeRouter = require('./Routes/issueTypeRoutes');
+app.use('/issueType', issueTypeRouter);
