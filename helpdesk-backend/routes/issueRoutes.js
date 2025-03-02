@@ -1,6 +1,6 @@
 const router = require("express").Router();
 
-const { createIssue, getAllIssuesByUserId, getAllIssues, updateIssue, deleteIssue, searchIssue, updateIssueStatus, resolveIssue, updateIssuePriority } = require('../Controllers/issueController');
+const { createIssue, getAllIssuesByUserId, getAllIssues, updateIssue, deleteIssue, searchIssue, updateIssueStatus, resolveIssue, updateIssuePriority } = require('../controllers/issueController');
 
 //create new issue
 router.post('/', createIssue);
