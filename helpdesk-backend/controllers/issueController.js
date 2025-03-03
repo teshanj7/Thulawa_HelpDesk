@@ -2,62 +2,69 @@ let Issue = require('../Models/issue');
 const { producer } = require('../kafka/kafkaConfig');
 
 const createIssue = async (req, res) => {
-  const { UserId, studentName, studentEmail, studentRegistrationNo, studentFaculty, studentCampus, 
-      studentContactNo, issueType, issueMessage, issueAttachment, issueStatus, issueResolvedBy, 
-      issueCreatedDate, issueResolvedDate, issueResolvedMessage, issuePriority } = req.body;
-
-  let calculatedPriority = issuePriority; 
-
-  // Assign issuePriority based on issueType
-  if (issueType === 'Request Documents' || issueType === 'Convocation Issue' || issueType === 'Campus Environment Issue'
-      || issueType === 'Module Content Issue' || issueType === 'Other Issue') {
-      calculatedPriority = 2;
-  } else if (issueType === 'Registration Issue' || issueType === 'Examination Issue' || issueType === 'Payment Issue') {
-      calculatedPriority = 1;
-  }
-
-  const newIssue = new Issue({
-      UserId,
-      studentName,
-      studentEmail,
-      studentRegistrationNo,
-      studentFaculty,
-      studentCampus,
-      studentContactNo,
-      issueType,
-      issueMessage,
-      issueAttachment,
-      issueStatus,
-      issueResolvedBy,
-      issueCreatedDate,   
-      issueResolvedDate,
-      issueResolvedMessage,
-      issuePriority: calculatedPriority
-  });
-
-  if (!studentName || !studentEmail || !studentRegistrationNo || !studentFaculty || !studentCampus || !studentContactNo || !issueType || !issueMessage) {
-      return res.status(400).json({ message: 'These fields are required!' });
-  }
-
-  try {
-    // Save the issue to the database
-    await newIssue.save();
-    console.log('Issue saved to the database successfully');
-
-    // Send the issue to the Kafka topic
-    await producer.send({
-      topic: 'issueRequests',
-      messages: [
-        { value: JSON.stringify(newIssue) }
-      ]
+    const { UserId, studentName, studentEmail, studentRegistrationNo, studentFaculty, studentCampus, 
+        studentContactNo, issueType, issueMessage, issueAttachment, issueStatus, issueResolvedBy, 
+        issueCreatedDate, issueResolvedDate, issueResolvedMessage, issuePriority } = req.body;
+  
+    let calculatedPriority = issuePriority; 
+  
+    // Assign issuePriority based on issueType
+    if (['Request Documents', 'Convocation Issue', 'Campus Environment Issue', 
+         'Module Content Issue', 'Other Issue'].includes(issueType)) {
+        calculatedPriority = 2;
+    } else if (['Registration Issue', 'Examination Issue', 'Payment Issue'].includes(issueType)) {
+        calculatedPriority = 1;
+    }
+  
+    if (!studentName || !studentEmail || !studentRegistrationNo || !studentFaculty || 
+        !studentCampus || !studentContactNo || !issueType || !issueMessage) {
+        return res.status(400).json({ message: 'These fields are required!' });
+    }
+  
+    const newIssue = new Issue({
+        UserId,
+        studentName,
+        studentEmail,
+        studentRegistrationNo,
+        studentFaculty,
+        studentCampus,
+        studentContactNo,
+        issueType,
+        issueMessage,
+        issueAttachment,
+        issueStatus,
+        issueResolvedBy,
+        issueCreatedDate,   
+        issueResolvedDate,
+        issueResolvedMessage,
+        issuePriority: calculatedPriority
     });
-    console.log('Issue sent to Kafka topic successfully');
-
-    res.json("Issue created and sent to Kafka successfully");
-  } catch (err) {
-    console.error('Error:', err);
-    res.status(500).json({ message: 'An error occurred while processing the issue' });
-  }
+  
+    try {
+      // Save the issue to the database
+      await newIssue.save();
+      console.log('Issue saved to the database successfully');
+  
+      // Construct Kafka message with key-value structure
+      const kafkaMessage = {
+        key: calculatedPriority.toString(), // Key as issue priority
+        value: JSON.stringify({UserId,issueType,issueMessage,issueStatus})
+      };
+  
+      // Send the issue to the Kafka topic
+      await producer.send({
+        topic: 'issueRequests',
+        messages: [kafkaMessage]
+      });
+  
+      console.log('Issue sent to Kafka topic successfully');
+  
+      res.json({ message: "Issue created and sent to Kafka successfully" });
+  
+    } catch (err) {
+      console.error('Error:', err);
+      res.status(500).json({ message: 'An error occurred while processing the issue' });
+    }
 };
 
 //view all issues by userId
