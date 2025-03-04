@@ -1,6 +1,7 @@
 let Issue = require('../Models/issue');
 const { producer } = require('../kafka/kafkaConfig');
 
+// create issue
 const createIssue = async (req, res) => {
     const { UserId, studentName, studentEmail, studentRegistrationNo, studentFaculty, studentCampus, 
         studentContactNo, issueType, issueMessage, issueAttachment, issueStatus, issueResolvedBy, 
@@ -231,7 +232,6 @@ const updateIssueStatus = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
-
 
 //resolve issue by id
 const resolveIssue = async (req, res) => {
