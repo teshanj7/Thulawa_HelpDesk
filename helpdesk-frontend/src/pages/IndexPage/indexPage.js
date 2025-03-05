@@ -1,9 +1,10 @@
-import React from 'react';
+import LoginPage from "../../componets/LoginComponent/loginComponent";
 
 export default function IndexPage() {
   return (
     <div>
-      <h1>Welcome to the Helpdesk App</h1>
+      <LoginPage />
     </div>
   );
 }
+
