@@ -3,8 +3,13 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import React, { useState, useEffect} from "react";
 import UserContext from "../src/ContextComponent/ContextComponent";
 
+// Header and Footer
+import Header from './componets/HeaderComponent/headerComponent';
+import Footer from './componets/FooterComponent/footerComponent';
+
 import Index from './pages/IndexPage/indexPage';
 import HomePage from './pages/HomePage/homePage';
+import ProfilePage from './pages/ProfilePage/profilePage';
 
 function App() {
     // user and token details pass
@@ -29,10 +34,13 @@ function App() {
   return (
     <Router>
     <UserContext.Provider value={{ user, setUser, token, setToken }}>
+      <Header/>
         <Routes>
           <Route path='' element={<Index/>}/>
           <Route path='/home' element={<HomePage/>}/>
+          <Route path='/profile/:id' element={<ProfilePage/>}/>
         </Routes>
+      <Footer/>
     </UserContext.Provider>
   </Router>
   );
