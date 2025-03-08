@@ -1,5 +1,5 @@
-let IssueType = require('../Models/issueType');
-let Issue = require('../Models/issue');
+let IssueType = require('../models/issueType');
+let Issue = require('../models/issue');
 
 const createIssueType = async (req, res) => {
     const { issueTypeName, issuePriorityLevel } = req.body;
