@@ -1,4 +1,4 @@
-let Issue = require('../Models/issue');
+let Issue = require('../models/issue');
 const { producer } = require('../kafka/kafkaConfig');
 
 // create issue
@@ -10,13 +10,13 @@ const createIssue = async (req, res) => {
     let calculatedPriority = issuePriority; 
   
     // Assign issuePriority based on issueType
-    if (['Request Documents', 'Convocation Issue', 'Campus Environment Issue', 
-         'Module Content Issue', 'Other Issue'].includes(issueType)) {
+    if (['REQUEST_DOCUMENTS', 'CONVOCATION_ISSUE', 'CAMPUS_ENVIRONMENT_ISSUE', 
+         'MODULE_CONTENT_ISSUE', 'OTHER_ISSUE'].includes(issueType)) {
         calculatedPriority = 2;
-    } else if (['Registration Issue', 'Examination Issue', 'Payment Issue'].includes(issueType)) {
+    } else if (['REGISTRATION_ISSUE', 'EXAMINATION_ISSUE', 'PAYMENT_ISSUE'].includes(issueType)) {
         calculatedPriority = 1;
     }
-  
+
     if (!studentName || !studentEmail || !studentRegistrationNo || !studentFaculty || 
         !studentCampus || !studentContactNo || !issueType || !issueMessage) {
         return res.status(400).json({ message: 'These fields are required!' });
@@ -46,17 +46,17 @@ const createIssue = async (req, res) => {
       await newIssue.save();
       console.log('Issue saved to the database successfully');
   
-      // Construct Kafka message with key-value structure
-      const kafkaMessage = {
-        key: calculatedPriority.toString(), // Key as issue priority
-        value: JSON.stringify({UserId,issueType,issueMessage,issueStatus})
-      };
+    //   // Construct Kafka message with key-value structure
+    //   const kafkaMessage = {
+    //     key: calculatedPriority.toString(), // Key as issue priority
+    //     value: JSON.stringify({UserId,issueType,issueMessage,issueStatus})
+    //   };
   
-      // Send the issue to the Kafka topic
-      await producer.send({
-        topic: 'issueRequests',
-        messages: [kafkaMessage]
-      });
+    //   // Send the issue to the Kafka topic
+    //   await producer.send({
+    //     topic: 'issueTemp',
+    //     messages: [kafkaMessage]
+    //   });
   
       console.log('Issue sent to Kafka topic successfully');
   
