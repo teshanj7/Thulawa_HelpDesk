@@ -11,6 +11,7 @@
     "autoprefixer": "^10.4.20",
     "axios": "^1.8.1",
     "chart.js": "^4.4.8",
+    "firebase": "^11.4.0",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",

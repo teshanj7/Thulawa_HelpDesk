@@ -46,17 +46,17 @@ const createIssue = async (req, res) => {
       await newIssue.save();
       console.log('Issue saved to the database successfully');
   
-    //   // Construct Kafka message with key-value structure
-    //   const kafkaMessage = {
-    //     key: calculatedPriority.toString(), // Key as issue priority
-    //     value: JSON.stringify({UserId,issueType,issueMessage,issueStatus})
-    //   };
+      // Construct Kafka message with key-value structure
+      const kafkaMessage = {
+        key: calculatedPriority.toString(), // Key as issue priority
+        value: JSON.stringify({UserId,issueType,issueMessage,issueStatus})
+      };
   
-    //   // Send the issue to the Kafka topic
-    //   await producer.send({
-    //     topic: 'issueTemp',
-    //     messages: [kafkaMessage]
-    //   });
+      // Send the issue to the Kafka topic
+      await producer.send({
+        topic: 'issueRequests',
+        messages: [kafkaMessage]
+      });
   
       console.log('Issue sent to Kafka topic successfully');
   
@@ -74,15 +74,6 @@ const getAllIssuesByUserId = async (req, res) => {
 
     try {
         const issues = await Issue.find({ UserId: UserId });
-        // Send the issues to the Kafka topic
-        await producer.send({
-            topic: 'issueRequests', 
-            messages: issues.map(issue => ({
-                value: JSON.stringify(issue)
-            }))
-        });
-        console.log('Issues sent to Kafka topic successfully');
-
         // Respond with the issues
         res.json(issues);
     } catch (error) {
@@ -95,15 +86,6 @@ const getAllIssuesByUserId = async (req, res) => {
 const getAllIssues = async (req, res) => {
     try {
         const issues = await Issue.find().sort({ issuePriority: -1 });
-         // Send the sorted issues to the Kafka topic
-         await producer.send({
-            topic: 'issueRequests', 
-            messages: issues.map(issue => ({
-                value: JSON.stringify(issue)
-            }))
-        });
-        console.log('Sorted issues sent to Kafka topic successfully');
-
         // Respond with the sorted issues
         res.json(issues);
     } catch (error) {
@@ -173,16 +155,7 @@ const deleteIssue = async (req, res) => {
         // Delete the issue from the database
         await Issue.findByIdAndDelete(issueId);
 
-        // Send the deleted issue's information to the Kafka topic
-        await producer.send({
-            topic: 'issueRequests', 
-            messages: [
-                { value: JSON.stringify(deletedIssue) }
-            ]
-        });
-        console.log('Deleted issue sent to Kafka topic successfully');
-
-        res.json("Issue deleted and sent to Kafka successfully");
+        res.json("Issue deleted successfully");
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ message: "Internal server error" });
@@ -217,16 +190,7 @@ const updateIssueStatus = async (req, res) => {
             return res.status(404).json({ message: 'Issue not found' });
         }
 
-        // Send the updated issue to the Kafka topic
-        await producer.send({
-            topic: 'issueRequests',
-            messages: [
-                { value: JSON.stringify(updatedIssue) }
-            ]
-        });
-        console.log('Updated issue status sent to Kafka topic successfully');
-
-        res.status(200).json({ message: 'Issue status updated and sent to Kafka successfully', updatedIssue });
+        res.status(200).json({ message: 'Issue status updated successfully', updatedIssue });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -250,16 +214,7 @@ const resolveIssue = async (req, res) => {
             return res.status(404).json({ message: 'Issue not found' });
         }
 
-        // Send the resolved issue to the Kafka topic
-        await producer.send({
-            topic: 'issueRequests', 
-            messages: [
-                { value: JSON.stringify(updatedIssue) }
-            ]
-        });
-        console.log('Resolved issue sent to Kafka topic successfully');
-
-        res.status(200).json({ message: 'Issue resolved and sent to Kafka successfully', updatedIssue });
+        res.status(200).json({ message: 'Issue resolved successfully', updatedIssue });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -283,15 +238,15 @@ const updateIssuePriority = async (req, res) => {
         }
 
         // Send the updated issue to the Kafka topic
-        await producer.send({
-            topic: 'issueRequests',
-            messages: [
-                { value: JSON.stringify(updatedIssue) }
-            ]
-        });
-        console.log('Updated issue priority sent to Kafka topic successfully');
+        // await producer.send({
+        //     topic: 'issueRequests',
+        //     messages: [
+        //         { value: JSON.stringify(updatedIssue) }
+        //     ]
+        // });
+        // console.log('Updated issue priority sent to Kafka topic successfully');
 
-        res.status(200).json({ message: 'Issue priority updated and sent to Kafka successfully', updatedIssue });
+        res.status(200).json({ message: 'Issue priority updated successfully', updatedIssue });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: 'Server error', error: error.message });

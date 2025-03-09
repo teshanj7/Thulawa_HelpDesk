@@ -26,6 +26,12 @@ connectToDatabase(process.env.MONGODB_URL)
     console.error("Failed to connect to the database or Kafka. Server not started.");
 });
 
+// connectToDatabase(process.env.MONGODB_URL).then(() => {
+//   app.listen(port, () => {
+//     console.log(`Server is up and running on port number ${port}`);
+//   });
+// });
+
 // auth routes
 const authRouter = require('./routes/authRoutes');
 app.use('/auth',authRouter);
