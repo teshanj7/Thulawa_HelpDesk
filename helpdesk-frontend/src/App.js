@@ -10,6 +10,7 @@ import Footer from './componets/FooterComponent/footerComponent';
 import Index from './pages/IndexPage/indexPage';
 import HomePage from './pages/HomePage/homePage';
 import ProfilePage from './pages/ProfilePage/profilePage';
+import CreateIssuePage from './pages/CreateIssuePage/createIssuePage';
 
 function App() {
     // user and token details pass
@@ -39,6 +40,7 @@ function App() {
           <Route path='' element={<Index/>}/>
           <Route path='/home' element={<HomePage/>}/>
           <Route path='/profile/:id' element={<ProfilePage/>}/>
+          <Route path='/create-issue' element={<CreateIssuePage/>}/>
         </Routes>
       <Footer/>
     </UserContext.Provider>
