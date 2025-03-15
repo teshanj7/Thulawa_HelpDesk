@@ -13,7 +13,7 @@ router.delete('/deleteIssue/:id', isAdminORStudent, deleteIssue); //delete an is
 router.get('/searchIssue', isAdminORStudent, searchIssue); //search issue
 
 // Admin-only routes
-router.get('/getAllIssues', isAdmin, getAllIssues); //view all issues
+router.get('/', isAdmin, getAllIssues); //view all issues
 router.put('/updateIssueStatus/:id', isAdmin, updateIssueStatus); //update issue status by id
 router.put('/resolveIssue/:id', isAdmin, resolveIssue); //resolve issue by id
 router.put('/updateIssuePriority/:id', isAdmin, updateIssuePriority); //update issue priority by id

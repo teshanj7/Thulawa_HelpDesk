@@ -2,7 +2,8 @@ import React, { useEffect, useState, useContext } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import axios from "axios";
 import UserContext from '../../ContextComponent/ContextComponent';
-import usercardpic from '../../images/astronaut.jpg';
+import usercardpic from '../../images/profilelogo.jpg';
+import Logo2 from '../../images/logo2.png';
 
 export default function Profile() {
     const [fullName, setFullName] = useState('');
@@ -43,7 +44,26 @@ export default function Profile() {
 
     return (
         <div className="min-h-screen text-white bg-gray-400">
-            <div className="py-8 text-center">
+            {/* Breadcrumbs Section */}
+            <div className="flex justify-center">
+                <div className="flex items-center px-6 py-3 mb-6 bg-white shadow-md w-full max-w-8xl">
+                    <img
+                        src={Logo2}
+                        alt="Breadcrumb Icon"
+                        className="w-16 h-10 mr-1"
+                    />
+                    <nav className="space-x-1 text-sm text-gray-600">
+                        <a href="/home" className="text-blue-600 hover:underline">Dashboard</a>
+                        <span className="text-gray-500">{">"}</span>
+                        <span className="font-medium text-black">Your Account</span>
+                        <span className="text-gray-500">{">"}</span>
+                        <span className="font-medium text-black">Profile</span>
+                    </nav>
+                </div>
+            </div>
+
+            {/* Heading */}
+            <div className="py-4 text-center">
                 <h1 className="font-mono text-5xl text-black font-aldrich">Your User Profile</h1>
             </div>
 
