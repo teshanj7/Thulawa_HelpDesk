@@ -1,3 +1,4 @@
+import Swal from 'sweetalert2';
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
@@ -14,20 +15,50 @@ const useAuth = () => {
                 Email,
                 Password
             });
+
             if (response.status === 200) {
-                alert("Login Successfully...!");
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Login Successful!',
+                    text: 'Welcome back, ' + response.data.user.Fullname,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    background: '#f0f9ff',
+                    color: '#0f172a'
+                });
+
                 setUser(response.data.user);
                 setToken(response.data.token);
-                navigate('/home');
+
+                // Delay navigation until after popup
+                setTimeout(() => {
+                    navigate('/home');
+                }, 2000);
             } 
         } catch (error) {
-            alert("Please Enter Valid Credentials..!");
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Please enter valid credentials!',
+                background: '#fef2f2',
+                color: '#7f1d1d'
+            });
         }
     }
 
     const logout = () => {
         localStorage.clear();
-        window.location.href = '/';
+        Swal.fire({
+            icon: 'success',
+            title: 'Logged out!',
+            text: 'You have been successfully logged out.',
+            showConfirmButton: false,
+            timer: 1500,
+            background: '#ecfdf5',
+            color: '#065f46'
+        }).then(() => {
+            window.location.href = '/';
+        });
     }
 
     return { login, logout };
