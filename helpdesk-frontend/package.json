@@ -12,6 +12,7 @@
     "axios": "^1.8.1",
     "chart.js": "^4.4.8",
     "firebase": "^11.4.0",
+    "framer-motion": "^12.5.0",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",
@@ -22,6 +23,7 @@
     "react-scripts": "5.0.1",
     "react-toastify": "^11.0.5",
     "react-tooltip": "^5.28.0",
+    "sweetalert2": "^11.17.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

@@ -28,12 +28,12 @@ export default function Header() {
       <div className="flex items-center space-x-4">
         <Link to="/home" className="flex items-center space-x-2">
           <img src={Logo} alt="SLIIT Logo" className="h-10" />
-          <h1 className="text-lg font-semibold">Uni HelpDesk</h1>
+          <h1 className="text-lg font-semibold font-poppins">Uni HelpDesk</h1>
         </Link>
       </div>
       <div className="relative">
         <button
-          className="flex items-center px-4 py-2 space-x-2 text-white bg-blue-500 rounded-md"
+          className="flex items-center px-4 py-2 space-x-2 font-poppins text-white bg-blue-500 rounded-md"
           onClick={() => setDropdownOpen(!dropdownOpen)}
         >
           <span>{user.UserType === 'student'
@@ -44,7 +44,7 @@ export default function Header() {
           <FaChevronDown />
         </button>
         {dropdownOpen && (
-          <div className="absolute right-0 w-48 mt-2 bg-white border rounded-md shadow-lg">
+          <div className="absolute right-0 w-48 mt-2 bg-white border rounded-md shadow-lg font-poppins">
             <ul className="py-2">
               <li className="px-4 py-2 cursor-pointer hover:bg-gray-100" onClick={(e) => {
                 e.preventDefault();

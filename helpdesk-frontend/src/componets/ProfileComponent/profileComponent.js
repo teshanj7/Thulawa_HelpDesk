@@ -43,7 +43,7 @@ export default function Profile() {
     }
 
     return (
-        <div className="min-h-screen text-white bg-gray-400">
+        <div className="min-h-screen text-white bg-gradient-to-r from-gray-600 via-gray-500 to-gray-400">
             {/* Breadcrumbs Section */}
             <div className="flex justify-center">
                 <div className="flex items-center px-6 py-3 mb-6 bg-white shadow-md w-full max-w-8xl">
@@ -52,7 +52,7 @@ export default function Profile() {
                         alt="Breadcrumb Icon"
                         className="w-16 h-10 mr-1"
                     />
-                    <nav className="space-x-1 text-sm text-gray-600">
+                    <nav className="space-x-1 text-sm text-gray-600 font-poppins">
                         <a href="/home" className="text-blue-600 hover:underline">Dashboard</a>
                         <span className="text-gray-500">{">"}</span>
                         <span className="font-medium text-black">Your Account</span>
@@ -64,7 +64,7 @@ export default function Profile() {
 
             {/* Heading */}
             <div className="py-4 text-center">
-                <h1 className="font-mono text-5xl text-black font-aldrich">Your User Profile</h1>
+                <h1 className="font-popins text-5xl text-black font-aldrich">Your User Profile</h1>
             </div>
 
             <div className="flex justify-center">
@@ -74,8 +74,8 @@ export default function Profile() {
                             <img src={usercardpic} alt="Astronaut" className="object-cover w-full h-full" />
                         </div>
                         <div className="p-6 md:w-2/3">
-                            <h3 className="mb-4 text-3xl font-bold text-black">{fullName}'s User Profile</h3>
-                            <p className="mb-6 text-black">Your User Information is listed in this card accordingly, you can either update or delete your details respectively.</p>
+                            <h3 className="mb-4 text-3xl font-popins text-black">{fullName}'s User Profile</h3>
+                            <p className="mb-6 text-black font-popins">Your User Information is listed in this card accordingly, you can either update or delete your details respectively.</p>
                             
                             <h5 className="mb-2 text-xl font-bold text-black">👤 User's Full Name:</h5>
                             <p className="mb-4 text-black">▶ {fullName}</p>

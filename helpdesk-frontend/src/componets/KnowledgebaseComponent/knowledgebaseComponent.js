@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaBook, FaInfoCircle } from 'react-icons/fa';
 import { Tooltip } from 'react-tooltip';
+import { motion } from 'framer-motion';
 
 export default function Knowledgebase() {
 
@@ -18,50 +19,83 @@ export default function Knowledgebase() {
     { id: 5, text: 'General Issues', tooltip: 'Information on credit conversion' },
   ];
 
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
     <div className="w-10/12 p-6 mx-auto">
-      <h2 className="flex items-center mb-4 font-mono text-xl">
-        <FaBook className="mr-2" /> Knowledgebase
-      </h2>
-      <div className="grid grid-cols-2 gap-6">
-        <div className="p-4 bg-gray-100 rounded-md">
-          <h3 className="flex items-center mb-4 font-mono">
-            <FaInfoCircle className="mr-2" /> Important Issues (36)
+      <motion.h2 
+        className="flex items-center mb-8 font-mono text-3xl font-bold text-gray-800"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <FaBook className="mr-2 text-blue-500" /> Knowledgebase
+      </motion.h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <motion.div 
+          className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg shadow-lg"
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <h3 className="flex items-center mb-6 font-mono text-xl font-semibold text-gray-700">
+            <FaInfoCircle className="mr-2 text-purple-500" /> Important Issues (36)
           </h3>
-          <ul className="ml-6 text-sm text-gray-700">
+          <ul className="space-y-4">
             {generalItems.map((item) => (
-              <li key={item.id} className="py-2">
+              <motion.li 
+                key={item.id} 
+                className="py-2"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <button
                   data-tooltip-id={`tooltip-${item.id}`}
                   data-tooltip-content={item.tooltip}
-                  className="p-0 text-blue-500 bg-transparent border-none cursor-pointer"
+                  className="p-2 text-blue-600 bg-white rounded-lg shadow-sm hover:bg-blue-50 transition-colors duration-200"
                 >
                   {item.text}
                 </button>
                 <Tooltip id={`tooltip-${item.id}`} />
-              </li>
+              </motion.li>
             ))}
           </ul>
-        </div>
-        <div className="p-4 bg-gray-100 rounded-md">
-          <h3 className="flex items-center mb-4 font-mono">
-            <FaInfoCircle className="mr-2" /> General Issues (1)
+        </motion.div>
+
+        <motion.div 
+          className="p-6 bg-gradient-to-r from-green-50 to-yellow-50 rounded-lg shadow-lg"
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <h3 className="flex items-center mb-6 font-mono text-xl font-semibold text-gray-700">
+            <FaInfoCircle className="mr-2 text-green-500" /> General Issues (1)
           </h3>
-          <ul className="ml-6 text-sm text-gray-700">
+          <ul className="space-y-4">
             {verificationItems.map((item) => (
-              <li key={item.id} className="py-2">
+              <motion.li 
+                key={item.id} 
+                className="py-2"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <button
                   data-tooltip-id={`tooltip-${item.id}`}
                   data-tooltip-content={item.tooltip}
-                  className="p-0 text-blue-500 bg-transparent border-none cursor-pointer"
+                  className="p-2 text-green-600 bg-white rounded-lg shadow-sm hover:bg-green-50 transition-colors duration-200"
                 >
                   {item.text}
                 </button>
                 <Tooltip id={`tooltip-${item.id}`} />
-              </li>
+              </motion.li>
             ))}
           </ul>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

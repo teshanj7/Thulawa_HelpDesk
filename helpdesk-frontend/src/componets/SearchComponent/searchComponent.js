@@ -10,7 +10,7 @@ export default function SearchBar() {
           <input
             type="text"
             placeholder="How can we help you today?"
-            className="w-full p-3 pl-10 rounded-md shadow-md outline-none"
+            className="w-full p-3 pl-10 rounded-md font-poppins shadow-md outline-none"
           />
           <FaSearch className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
         </div>
