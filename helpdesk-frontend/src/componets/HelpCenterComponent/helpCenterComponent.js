@@ -5,7 +5,7 @@ import Logo2 from '../../images/logo2.png';
 export default function HelpCenter() {
   const features = [
     { title: "Submit Your Issues", description: "All Issues are here", icon: "📝", link: "/create-issue" },
-    { title: "View Your Own Issues", description: "Browse our files", icon: "📂", link: "/view-issues" },
+    { title: "View Your Own Issues", description: "Browse our files", icon: "📂", link: "/view-issue" },
     { title: "Contact UniHelpDesk", description: "Get in touch for help", icon: "📞", link: "/contact-helpdesk" },
   ];
 
@@ -13,7 +13,7 @@ export default function HelpCenter() {
     <div className="flex flex-col items-center mb-4">
       
       {/* Breadcrumbs Section */}
-      <div className="flex items-center px-6 py-3 mb-8 bg-white shadow-md w-full max-w-8xl">
+      <div className="flex items-center w-full px-6 py-3 mb-8 bg-white shadow-md max-w-8xl">
         <img
           src={Logo2}
           alt="Breadcrumb Icon"
@@ -29,7 +29,7 @@ export default function HelpCenter() {
       </div>
 
       {/* Features Section */}
-      <div className="flex justify-center gap-6 flex-wrap">
+      <div className="flex flex-wrap justify-center gap-6">
         {features.map((feature, index) => (
           <motion.div
             key={index}
@@ -43,7 +43,7 @@ export default function HelpCenter() {
             <div className="mr-4 text-7xl">{feature.icon}</div>
             <div className="flex flex-col justify-between">
               <div>
-                <h3 className="font-poppins text-lg">{feature.title}</h3>
+                <h3 className="text-lg font-poppins">{feature.title}</h3>
                 <p className="text-sm text-gray-600 font-poppins">{feature.description}</p>
               </div>
               <a

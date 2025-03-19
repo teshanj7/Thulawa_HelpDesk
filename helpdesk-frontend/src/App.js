@@ -11,6 +11,7 @@ import Index from './pages/IndexPage/indexPage';
 import HomePage from './pages/HomePage/homePage';
 import ProfilePage from './pages/ProfilePage/profilePage';
 import CreateIssuePage from './pages/CreateIssuePage/createIssuePage';
+import ViewIssuePage from './pages/viewIssuePage/viewIssuePage';
 
 function App() {
     // user and token details pass
@@ -41,6 +42,7 @@ function App() {
           <Route path='/home' element={<HomePage/>}/>
           <Route path='/profile/:id' element={<ProfilePage/>}/>
           <Route path='/create-issue' element={<CreateIssuePage/>}/>
+          <Route path='/view-issue' element={<ViewIssuePage/>}/>
         </Routes>
       <Footer/>
     </UserContext.Provider>
