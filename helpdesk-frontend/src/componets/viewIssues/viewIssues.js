@@ -13,7 +13,7 @@ export default function ViewIssueComponent() {
     console.log(issueData)
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 30;
+    const itemsPerPage = 5;
 
     if (!issueData) {
         return (

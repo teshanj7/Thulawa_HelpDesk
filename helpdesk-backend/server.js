@@ -13,7 +13,7 @@ const port = process.env.PORT || 8070;
 app.use(cors());
 app.use(express.json());
 
-// Connect to the database first, then connect to Kafka, then start the server
+//Connect to the database first, then connect to Kafka, then start the server
 connectToDatabase(process.env.MONGODB_URL)
   .then(() => connectProducer()) // Connect to Kafka producer
   .then(() => {

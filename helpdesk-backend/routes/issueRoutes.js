@@ -4,7 +4,7 @@ const { createIssue, getAllIssuesByUserId, getAllIssues, updateIssue,
     deleteIssue, searchIssue, updateIssueStatus, resolveIssue, updateIssuePriority } = require('../controllers/issueController');
 
 // Student-only routes
-router.post('/createIssue', isStudent, createIssue); //create new issue
+router.post('/createIssue', createIssue); //create new issue
 router.get('/getAllIssuesByUserId/:id', isStudent, getAllIssuesByUserId); //view all issues by userId
 router.put('/updateIssue/:id', isStudent, updateIssue); //update an issue by id
 
