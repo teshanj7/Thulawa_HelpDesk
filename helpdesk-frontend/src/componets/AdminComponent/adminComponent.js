@@ -1,4 +1,3 @@
-// KanbanBoard.js
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { AlertCircle, Clock, RefreshCw, CheckCircle, Table } from 'lucide-react';
@@ -141,15 +140,51 @@ const KanbanBoard = () => {
 
       setIssues(mockIssues);
 
-      // Initialize columns with issues
-      const columnsCopy = { ...columns };
+      // Initialize columns with issues - creating a fresh object to avoid any data persistence issues
+      const newColumns = {
+        'To Do': {
+          id: 'To Do',
+          title: 'To Do',
+          issueIds: [],
+          icon: Clock,
+          color: 'bg-blue-500',
+          headerColor: 'bg-blue-100 border-blue-200'
+        },
+        'In Progress': {
+          id: 'In Progress',
+          title: 'In Progress',
+          issueIds: [],
+          icon: RefreshCw,
+          color: 'bg-yellow-500',
+          headerColor: 'bg-yellow-100 border-yellow-200'
+        },
+        'Re Open': {
+          id: 'Re Open',
+          title: 'Re Open',
+          issueIds: [],
+          icon: AlertCircle,
+          color: 'bg-red-500',
+          headerColor: 'bg-red-100 border-red-200'
+        },
+        'Done': {
+          id: 'Done',
+          title: 'Done',
+          issueIds: [],
+          icon: CheckCircle,
+          color: 'bg-green-500',
+          headerColor: 'bg-green-100 border-green-200'
+        }
+      };
+
+      // Properly assign issues to columns without duplicates
       mockIssues.forEach(issue => {
         const status = issue.issueStatus;
-        if (columnsCopy[status]) {
-          columnsCopy[status].issueIds.push(issue.id);
+        if (newColumns[status] && !newColumns[status].issueIds.includes(issue.id)) {
+          newColumns[status].issueIds.push(issue.id);
         }
       });
-      setColumns(columnsCopy);
+      
+      setColumns(newColumns);
     };
 
     fetchIssues();
@@ -222,10 +257,6 @@ const KanbanBoard = () => {
     setIsModalOpen(true);
   };
 
-  const createNewIssue = () => {
-    alert('New issue creation would be implemented here');
-  };
-
   const toggleViewMode = () => {
     setViewMode(viewMode === 'kanban' ? 'table' : 'kanban');
   };
@@ -235,12 +266,6 @@ const KanbanBoard = () => {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">HelpDesk Tickets</h1>
         <div className="flex space-x-2">
-          {/* <button 
-            className="flex items-center px-4 py-2 text-white bg-indigo-600 rounded hover:bg-indigo-700"
-            onClick={createNewIssue}
-          >
-            <span className="mr-1">+</span> New Issue
-          </button> */}
           <button 
             className="flex items-center px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
             onClick={toggleViewMode}
