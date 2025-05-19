@@ -1,6 +1,8 @@
+// KanbanBoard.js
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { AlertCircle, Clock, RefreshCw, CheckCircle } from 'lucide-react';
+import { AlertCircle, Clock, RefreshCw, CheckCircle, Table } from 'lucide-react';
+import TableView from '../AdminTableView/adminTableView';
 
 const KanbanBoard = () => {
   const [issues, setIssues] = useState([]);
@@ -40,6 +42,7 @@ const KanbanBoard = () => {
   });
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState('kanban'); // 'kanban' or 'table'
 
   // Simulated data fetching 
   useEffect(() => {
@@ -179,12 +182,10 @@ const KanbanBoard = () => {
   const onDragEnd = (result) => {
     const { destination, source, draggableId } = result;
 
-    // If there's no destination or the item was dropped back in its original position
     if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
       return;
     }
 
-    // Find the source and destination columns
     const sourceColumnKey = source.droppableId;
     const destColumnKey = destination.droppableId;
 
@@ -193,21 +194,17 @@ const KanbanBoard = () => {
       return;
     }
 
-    // Create copies of the state
     const newColumns = { ...columns };
     const newIssues = [...issues];
 
-    // Remove from source column
     const sourceIssueIds = Array.from(newColumns[sourceColumnKey].issueIds);
     sourceIssueIds.splice(source.index, 1);
     newColumns[sourceColumnKey].issueIds = sourceIssueIds;
 
-    // Add to destination column
     const destIssueIds = Array.from(newColumns[destColumnKey].issueIds);
     destIssueIds.splice(destination.index, 0, draggableId);
     newColumns[destColumnKey].issueIds = destIssueIds;
 
-    // Update the issue status in the issues array
     const issueIndex = newIssues.findIndex(issue => issue.id === draggableId);
     if (issueIndex !== -1) {
       newIssues[issueIndex] = {
@@ -229,114 +226,133 @@ const KanbanBoard = () => {
     alert('New issue creation would be implemented here');
   };
 
-  const refreshBoard = () => {
-    alert('Board refresh would be implemented here');
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'kanban' ? 'table' : 'kanban');
   };
 
   return (
-    <div className="flex flex-col h-screen p-4 bg-gray-100">
+    <div className="flex flex-col min-h-screen p-8 bg-gray-100">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">HelpDesk Kanban Board</h1>
+        <h1 className="text-2xl font-bold text-gray-800">HelpDesk Tickets</h1>
         <div className="flex space-x-2">
-          <button 
+          {/* <button 
             className="flex items-center px-4 py-2 text-white bg-indigo-600 rounded hover:bg-indigo-700"
             onClick={createNewIssue}
           >
             <span className="mr-1">+</span> New Issue
-          </button>
+          </button> */}
           <button 
             className="flex items-center px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
-            onClick={refreshBoard}
+            onClick={toggleViewMode}
           >
-            <RefreshCw size={16} className="mr-1" /> Refresh
+            {viewMode === 'kanban' ? (
+              <>
+                <Table size={16} className="mr-1" /> Table View
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                </svg>
+                Kanban View
+              </>
+            )}
           </button>
         </div>
       </div>
 
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex h-full pb-4 space-x-4 overflow-x-auto">
-          {Object.keys(columns).map(columnKey => {
-            const column = columns[columnKey];
-            const Icon = column.icon;
-            
-            return (
-              <div key={columnKey} className="flex-shrink-0 w-80">
-                <div className={`rounded-t-lg ${column.headerColor} p-3 border-b border-l border-r border-t flex items-center justify-between`}>
-                  <div className="flex items-center">
-                    <Icon size={18} className="mr-2" />
-                    <h2 className="font-semibold">{column.title}</h2>
-                  </div>
-                  <div className="px-2 py-1 text-xs font-medium bg-white border border-gray-300 rounded-full">
-                    {column.issueIds.length}
-                  </div>
-                </div>
-                
-                <Droppable droppableId={columnKey}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className={`bg-gray-50 rounded-b-lg p-2 min-h-[500px] border-b border-l border-r ${
-                        snapshot.isDraggingOver ? 'bg-blue-50' : ''
-                      }`}
-                    >
-                      {column.issueIds.map((issueId, index) => {
-                        const issue = issues.find(i => i.id === issueId);
-                        if (!issue) return null;
-                        
-                        return (
-                          <Draggable key={issue.id} draggableId={issue.id} index={index}>
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className={`bg-white rounded-lg p-3 mb-2 shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-shadow ${
-                                  snapshot.isDragging ? 'shadow-lg border-2 border-blue-300' : ''
-                                }`}
-                                onClick={() => handleCardClick(issue)}
-                              >
-                                <div className="flex items-start justify-between mb-2">
-                                  <span className="text-xs font-medium text-gray-500">#{issue.id}</span>
-                                  <span className={`text-xs px-2 py-1 rounded-full ${getPriorityClass(issue.priority)}`}>
-                                    {issue.priority}
-                                  </span>
-                                </div>
-                                <h3 className="mb-1 font-medium text-gray-800 truncate">
-                                  {issue.studentName}
-                                </h3>
-                                <div className="mb-2">
-                                  <span className={`text-xs px-2 py-1 rounded border ${getIssueTypeClass(issue.issueType)}`}>
-                                    {issue.issueType}
-                                  </span>
-                                </div>
-                                <p className="text-sm text-gray-600">
-                                  {truncateText(issue.issueMessage)}
-                                </p>
-                                <div className="flex items-center justify-between mt-3">
-                                  <div className="text-xs text-gray-500">
-                                    {new Date(issue.createdAt).toLocaleDateString()}
-                                  </div>
-                                  <div className="flex items-center">
-                                    <div className="flex items-center justify-center w-6 h-6 text-xs font-medium bg-gray-300 rounded-full">
-                                      {issue.assignedTo.charAt(0)}
+      {viewMode === 'kanban' ? (
+        <div className="flex justify-center">
+          <div className="w-full max-w-8xl">
+            <DragDropContext onDragEnd={onDragEnd}>
+              <div className="flex h-full pb-4 space-x-4 overflow-x-auto">
+                {Object.keys(columns).map(columnKey => {
+                  const column = columns[columnKey];
+                  const Icon = column.icon;
+                  
+                  return (
+                    <div key={columnKey} className="flex-shrink-0 w-80">
+                      <div className={`rounded-t-lg ${column.headerColor} p-3 border-b border-l border-r border-t flex items-center justify-between`}>
+                        <div className="flex items-center">
+                          <Icon size={18} className="mr-2" />
+                          <h2 className="font-semibold">{column.title}</h2>
+                        </div>
+                        <div className="px-2 py-1 text-xs font-medium bg-white border border-gray-300 rounded-full">
+                          {column.issueIds.length}
+                        </div>
+                      </div>
+                      
+                      <Droppable droppableId={columnKey}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className={`bg-gray-50 rounded-b-lg p-2 min-h-[500px] border-b border-l border-r ${
+                              snapshot.isDraggingOver ? 'bg-blue-50' : ''
+                            }`}
+                          >
+                            {column.issueIds.map((issueId, index) => {
+                              const issue = issues.find(i => i.id === issueId);
+                              if (!issue) return null;
+                              
+                              return (
+                                <Draggable key={issue.id} draggableId={issue.id} index={index}>
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className={`bg-white rounded-lg p-3 mb-2 shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-shadow ${
+                                        snapshot.isDragging ? 'shadow-lg border-2 border-blue-300' : ''
+                                      }`}
+                                      onClick={() => handleCardClick(issue)}
+                                    >
+                                      <div className="flex items-start justify-between mb-2">
+                                        <span className="text-xs font-medium text-gray-500">#{issue.id}</span>
+                                        <span className={`text-xs px-2 py-1 rounded-full ${getPriorityClass(issue.priority)}`}>
+                                          {issue.priority}
+                                        </span>
+                                      </div>
+                                      <h3 className="mb-1 font-medium text-gray-800 truncate">
+                                        {issue.studentName}
+                                      </h3>
+                                      <div className="mb-2">
+                                        <span className={`text-xs px-2 py-1 rounded border ${getIssueTypeClass(issue.issueType)}`}>
+                                          {issue.issueType}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-gray-600">
+                                        {truncateText(issue.issueMessage)}
+                                      </p>
+                                      <div className="flex items-center justify-between mt-3">
+                                        <div className="text-xs text-gray-500">
+                                          {new Date(issue.createdAt).toLocaleDateString()}
+                                        </div>
+                                        <div className="flex items-center">
+                                          <div className="flex items-center justify-center w-6 h-6 text-xs font-medium bg-gray-300 rounded-full">
+                                            {issue.assignedTo.charAt(0)}
+                                          </div>
+                                        </div>
+                                      </div>
                                     </div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </Draggable>
-                        );
-                      })}
-                      {provided.placeholder}
+                                  )}
+                                </Draggable>
+                              );
+                            })}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
                     </div>
-                  )}
-                </Droppable>
+                  );
+                })}
               </div>
-            );
-          })}
+            </DragDropContext>
+          </div>
         </div>
-      </DragDropContext>
+      ) : (
+        <TableView issues={issues} onRowClick={handleCardClick} />
+      )}
 
       {/* Modal for detailed issue view */}
       {isModalOpen && selectedIssue && (
