@@ -3,17 +3,19 @@ import UserContext from '../../ContextComponent/ContextComponent';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 import useViewIssueById from '../../hooks/useViewIssuebyID';
+import useDeleteIssue from '../../hooks/useDeleteIssue';
 import Logo2 from '../../images/logo2.png';
 
 export default function ViewIssueComponent() {
     const { user } = useContext(UserContext);
     const userId = user._id;
     const { issueData } = useViewIssueById(userId);
+    const { onDeleteIssue } = useDeleteIssue(userId);
 
     console.log(issueData)
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 30;
+    const itemsPerPage = 5;
 
     if (!issueData) {
         return (
@@ -32,13 +34,25 @@ export default function ViewIssueComponent() {
         currentPage * itemsPerPage
     );
 
-    const handleDelete = (item) => {
-        // Add your delete logic here
-        console.log('Delete item:', item);
-    };
+    // const handleDelete = (item) => {
+    //     // Add your delete logic here
+    //     console.log('Delete item:', item);
+    // };
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
+    };
+
+    const handleDeleteIssue = async (userId) => {
+        const isDeleted = await onDeleteIssue(userId);
+        if (isDeleted) {
+            alert("Issue has been deleted successfully!");
+            window.location.href = "/view-issue";
+        } else {
+          console.log(
+            "Error with the product deletion, please try again later ..."
+          );
+        }
     };
 
     return (
@@ -114,7 +128,7 @@ export default function ViewIssueComponent() {
                                                 <FontAwesomeIcon icon={faPencilAlt} />
                                             </button>
                                             <button
-                                                onClick={() => handleDelete(item)}
+                                                onClick={() => handleDeleteIssue(userId)}
                                                 className="p-2 text-red-600 transition duration-150 ease-in-out hover:text-red-800"
                                             >
                                                 <FontAwesomeIcon icon={faTrash} />
