@@ -1,16 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import axios from 'axios';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { AlertCircle, Clock, RefreshCw, CheckCircle, Table } from 'lucide-react';
 import TableView from '../AdminTableView/adminTableView';
+import UserContext from '../../ContextComponent/ContextComponent';
 
 const KanbanBoard = () => {
+  const { user, token } = useContext(UserContext);
+  const AdminType = user?.AdminType;
   const [issues, setIssues] = useState([]);
+  const [filteredIssues, setFilteredIssues] = useState([]);
+  
+  // Define column structure without including React components directly in the state
   const [columns, setColumns] = useState({
     'To Do': {
       id: 'To Do',
       title: 'To Do',
       issueIds: [],
-      icon: Clock,
+      iconType: 'clock', // Use string identifiers instead of components
       color: 'bg-blue-500',
       headerColor: 'bg-blue-100 border-blue-200'
     },
@@ -18,7 +25,7 @@ const KanbanBoard = () => {
       id: 'In Progress',
       title: 'In Progress',
       issueIds: [],
-      icon: RefreshCw,
+      iconType: 'refreshCw',
       color: 'bg-yellow-500',
       headerColor: 'bg-yellow-100 border-yellow-200'
     },
@@ -26,7 +33,7 @@ const KanbanBoard = () => {
       id: 'Re Open',
       title: 'Re Open',
       issueIds: [],
-      icon: AlertCircle,
+      iconType: 'alertCircle',
       color: 'bg-red-500',
       headerColor: 'bg-red-100 border-red-200'
     },
@@ -34,179 +41,199 @@ const KanbanBoard = () => {
       id: 'Done',
       title: 'Done',
       issueIds: [],
-      icon: CheckCircle,
+      iconType: 'checkCircle',
       color: 'bg-green-500',
       headerColor: 'bg-green-100 border-green-200'
     }
   });
+  
+  // Map for icon types to actual components
+  const iconComponents = {
+    clock: Clock,
+    refreshCw: RefreshCw,
+    alertCircle: AlertCircle,
+    checkCircle: CheckCircle
+  };
+  
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [viewMode, setViewMode] = useState('kanban'); // 'kanban' or 'table'
+  const [viewMode, setViewMode] = useState('kanban');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Simulated data fetching 
-  useEffect(() => {
-    const fetchIssues = async () => {
-      const mockIssues = [
-        {
-          id: '1',
-          studentName: 'John Smith',
-          issueType: 'Technical',
-          issueMessage: 'Cannot access the online course portal after password reset',
-          issueStatus: 'To Do',
-          createdAt: '2025-05-12T10:30:00',
-          priority: 'High',
-          assignedTo: 'Tech Support Team',
-          comments: [
-            { author: 'Admin', message: 'Looking into this issue', timestamp: '2025-05-12T11:00:00' }
-          ]
-        },
-        {
-          id: '2',
-          studentName: 'Maria Garcia',
-          issueType: 'Administrative',
-          issueMessage: 'Need to update personal information in student records',
-          issueStatus: 'In Progress',
-          createdAt: '2025-05-11T09:15:00',
-          priority: 'Medium',
-          assignedTo: 'Admin Office',
-          comments: [
-            { author: 'Admin Staff', message: 'Documentation received', timestamp: '2025-05-11T15:20:00' }
-          ]
-        },
-        {
-          id: '3',
-          studentName: 'David Johnson',
-          issueType: 'Technical',
-          issueMessage: 'Assignment submission system errors out with code 500',
-          issueStatus: 'Re Open',
-          createdAt: '2025-05-10T14:45:00',
-          priority: 'Critical',
-          assignedTo: 'Developer Team',
-          comments: [
-            { author: 'Tech Support', message: 'Issue was fixed but occurred again', timestamp: '2025-05-12T08:30:00' }
-          ]
-        },
-        {
-          id: '4',
-          studentName: 'Emma Wilson',
-          issueType: 'Billing',
-          issueMessage: 'Double charged for semester registration fees',
-          issueStatus: 'Done',
-          createdAt: '2025-05-09T11:20:00',
-          priority: 'High',
-          assignedTo: 'Finance Department',
-          comments: [
-            { author: 'Finance', message: 'Refund processed', timestamp: '2025-05-11T16:45:00' }
-          ]
-        },
-        {
-          id: '5',
-          studentName: 'Michael Brown',
-          issueType: 'Academic',
-          issueMessage: 'Course credit not showing in transcript',
-          issueStatus: 'In Progress',
-          createdAt: '2025-05-12T08:10:00',
-          priority: 'Medium',
-          assignedTo: 'Academic Affairs',
-          comments: [
-            { author: 'Academic Advisor', message: 'Reviewing course records', timestamp: '2025-05-12T10:15:00' }
-          ]
-        },
-        {
-          id: '6',
-          studentName: 'Sophia Lee',
-          issueType: 'Technical',
-          issueMessage: 'Unable to download course materials',
-          issueStatus: 'To Do',
-          createdAt: '2025-05-11T16:30:00',
-          priority: 'Low',
-          assignedTo: 'IT Support',
-          comments: []
-        },
-        {
-          id: '7',
-          studentName: 'James Martin',
-          issueType: 'Administrative',
-          issueMessage: 'Request for enrollment verification letter',
-          issueStatus: 'Done',
-          createdAt: '2025-05-10T09:45:00',
-          priority: 'Low',
-          assignedTo: 'Registrar Office',
-          comments: [
-            { author: 'Registrar', message: 'Letter generated and sent via email', timestamp: '2025-05-11T14:20:00' }
-          ]
-        }
-      ];
+  // Define which issue types each admin can see
+  const adminIssueTypes = {
+    Admin1: ['REGISTRATION_ISSUE', 'PAYMENT_ISSUE'],
+    Admin2: ['EXAMINATION_ISSUE', 'MODULE_CONTENT_ISSUE'],
+    Admin3: ['CONVOCATION_ISSUE', 'CAMPUS_ENVIRONMENT_ISSUE'],
+    Admin4: ['REQUEST_DOCUMENTS', 'OTHER_ISSUE']
+  };
 
-      setIssues(mockIssues);
+  const apiStatusMapping = {
+    'To Do': 'Open',
+    'In Progress': 'In Progress',
+    'Re Open': 'Re Open',
+    'Done': 'Done'
+  };
 
-      // Initialize columns with issues - creating a fresh object to avoid any data persistence issues
-      const newColumns = {
-        'To Do': {
-          id: 'To Do',
-          title: 'To Do',
-          issueIds: [],
-          icon: Clock,
-          color: 'bg-blue-500',
-          headerColor: 'bg-blue-100 border-blue-200'
-        },
-        'In Progress': {
-          id: 'In Progress',
-          title: 'In Progress',
-          issueIds: [],
-          icon: RefreshCw,
-          color: 'bg-yellow-500',
-          headerColor: 'bg-yellow-100 border-yellow-200'
-        },
-        'Re Open': {
-          id: 'Re Open',
-          title: 'Re Open',
-          issueIds: [],
-          icon: AlertCircle,
-          color: 'bg-red-500',
-          headerColor: 'bg-red-100 border-red-200'
-        },
-        'Done': {
-          id: 'Done',
-          title: 'Done',
-          issueIds: [],
-          icon: CheckCircle,
-          color: 'bg-green-500',
-          headerColor: 'bg-green-100 border-green-200'
-        }
-      };
+  // Map API status to our column names
+  const statusMapping = {
+    'Open': 'To Do',
+    'In Progress': 'In Progress',
+    'Re Open': 'Re Open',
+    'Done': 'Done'
+  };
 
-      // Properly assign issues to columns without duplicates
-      mockIssues.forEach(issue => {
-        const status = issue.issueStatus;
-        if (newColumns[status] && !newColumns[status].issueIds.includes(issue.id)) {
-          newColumns[status].issueIds.push(issue.id);
+  // Map priority numbers to text
+  const priorityMapping = {
+    1: 'High',
+    2: 'Low'
+  };
+
+  // Fetch issues from API
+  const fetchIssues = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:8070/issue/`, {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       });
-      
-      setColumns(newColumns);
+
+      if (response.status === 200) {
+        // Filter issues based on admin type
+        const filtered = response.data.filter(issue => 
+          adminIssueTypes[AdminType]?.includes(issue.issueType)
+        );
+        
+        // Transform API data to match our expected format
+        const transformedIssues = filtered.map(issue => ({
+          id: issue._id,
+          studentName: issue.studentName,
+          issueType: issue.issueType,
+          issueMessage: issue.issueMessage,
+          issueStatus: statusMapping[issue.issueStatus] || 'To Do',
+          createdAt: issue.issueCreatedDate,
+          priority: priorityMapping[issue.issuePriority] || 'Low',
+          assignedTo: issue.issueResolvedBy || 'Unassigned',
+          comments: [], // You might want to map comments if available
+          originalData: issue // Keep original data for reference
+        }));
+
+        setIssues(transformedIssues);
+        setFilteredIssues(transformedIssues);
+        initializeColumns(transformedIssues);
+      }
+    } catch (error) {
+      console.error('Error fetching issues:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initialize columns with filtered issues
+  const initializeColumns = (issues) => {
+    // Create a new columns object without modifying the React component references
+    const newColumns = {
+      'To Do': {
+        id: 'To Do',
+        title: 'To Do',
+        issueIds: [],
+        iconType: 'clock',
+        color: 'bg-blue-500',
+        headerColor: 'bg-blue-100 border-blue-200'
+      },
+      'In Progress': {
+        id: 'In Progress',
+        title: 'In Progress',
+        issueIds: [],
+        iconType: 'refreshCw',
+        color: 'bg-yellow-500',
+        headerColor: 'bg-yellow-100 border-yellow-200'
+      },
+      'Re Open': {
+        id: 'Re Open',
+        title: 'Re Open',
+        issueIds: [],
+        iconType: 'alertCircle',
+        color: 'bg-red-500',
+        headerColor: 'bg-red-100 border-red-200'
+      },
+      'Done': {
+        id: 'Done',
+        title: 'Done',
+        issueIds: [],
+        iconType: 'checkCircle',
+        color: 'bg-green-500',
+        headerColor: 'bg-green-100 border-green-200'
+      }
     };
 
-    fetchIssues();
-  }, []);
+    // Assign issues to columns
+    issues.forEach(issue => {
+      const status = issue.issueStatus;
+      if (newColumns[status] && !newColumns[status].issueIds.includes(issue.id)) {
+        newColumns[status].issueIds.push(issue.id);
+      }
+    });
+
+    setColumns(newColumns);
+  };
+
+  useEffect(() => {
+    if (AdminType) {
+      fetchIssues();
+    }
+  }, [AdminType, token]);
+
+  // Update issue status in the database
+  const updateIssueStatus = async (issueId, newStatus) => {
+    try {
+      const response = await axios.patch(
+        `http://localhost:8070/issue/updateIssueStatus/${issueId}`,
+        { issueStatus: apiStatusMapping[newStatus] },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!response.data) {
+        throw new Error('Failed to update issue status');
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Error updating issue status:', error);
+      throw error;
+    }
+  };
 
   const getPriorityClass = (priority) => {
     switch (priority) {
-      case 'Critical': return 'bg-red-500 text-white';
-      case 'High': return 'bg-orange-500 text-white';
-      case 'Medium': return 'bg-yellow-500';
-      case 'Low': return 'bg-green-500';
-      default: return 'bg-gray-500';
+      case 'High': return 'bg-red-500 text-white';
+      case 'Low': return 'bg-green-500 text-white';
+      default: return 'bg-gray-500 text-white';
     }
   };
 
   const getIssueTypeClass = (type) => {
     switch (type) {
-      case 'Technical': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'Administrative': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Academic': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Billing': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'REGISTRATION_ISSUE': 
+      case 'PAYMENT_ISSUE':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'EXAMINATION_ISSUE':
+      case 'MODULE_CONTENT_ISSUE':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'CONVOCATION_ISSUE':
+      case 'CAMPUS_ENVIRONMENT_ISSUE':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'REQUEST_DOCUMENTS':
+      case 'OTHER_ISSUE':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default: 
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -214,7 +241,7 @@ const KanbanBoard = () => {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
-  const onDragEnd = (result) => {
+  const onDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
 
     if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
@@ -229,27 +256,69 @@ const KanbanBoard = () => {
       return;
     }
 
+    // Create a fresh copy of the columns object without using JSON.stringify/parse
     const newColumns = { ...columns };
-    const newIssues = [...issues];
+    
+    // Properly copy each column
+    Object.keys(newColumns).forEach(key => {
+      newColumns[key] = {
+        ...newColumns[key],
+        issueIds: [...newColumns[key].issueIds]
+      };
+    });
+    
+    // Make a fresh copy of issues
+    const newIssues = issues.map(issue => ({ ...issue }));
 
-    const sourceIssueIds = Array.from(newColumns[sourceColumnKey].issueIds);
+    // Remove from source column
+    const sourceIssueIds = newColumns[sourceColumnKey].issueIds;
     sourceIssueIds.splice(source.index, 1);
-    newColumns[sourceColumnKey].issueIds = sourceIssueIds;
-
-    const destIssueIds = Array.from(newColumns[destColumnKey].issueIds);
+    
+    // Add to destination column
+    const destIssueIds = newColumns[destColumnKey].issueIds;
     destIssueIds.splice(destination.index, 0, draggableId);
-    newColumns[destColumnKey].issueIds = destIssueIds;
 
+    // Update issue status in issues array
     const issueIndex = newIssues.findIndex(issue => issue.id === draggableId);
     if (issueIndex !== -1) {
       newIssues[issueIndex] = {
         ...newIssues[issueIndex],
         issueStatus: destColumnKey
       };
+      
+      // Also update the originalData's issueStatus to match backend format
+      if (newIssues[issueIndex].originalData) {
+        newIssues[issueIndex].originalData = {
+          ...newIssues[issueIndex].originalData,
+          issueStatus: apiStatusMapping[destColumnKey] || newIssues[issueIndex].originalData.issueStatus
+        };
+      }
     }
 
+    // Apply optimistic update
     setColumns(newColumns);
     setIssues(newIssues);
+
+    try {
+      // Find the full issue to get the database _id
+      const issue = issues.find(i => i.id === draggableId);
+      if (!issue) {
+        throw new Error('Issue not found in local state');
+      }
+
+      // Use the original _id from the issue's originalData
+      const dbId = issue.originalData?._id || draggableId;
+      
+      await updateIssueStatus(dbId, destColumnKey);
+      
+      // Refresh data to ensure sync with backend
+      await fetchIssues();
+    } catch (error) {
+      console.error('Failed to update status, reverting UI', error);
+      // Revert to previous state
+      setColumns(columns);
+      setIssues(issues);
+    }
   };
 
   const handleCardClick = (issue) => {
@@ -260,6 +329,14 @@ const KanbanBoard = () => {
   const toggleViewMode = () => {
     setViewMode(viewMode === 'kanban' ? 'table' : 'kanban');
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-4 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen p-8 bg-gray-100">
@@ -293,7 +370,8 @@ const KanbanBoard = () => {
               <div className="flex h-full pb-4 space-x-4 overflow-x-auto">
                 {Object.keys(columns).map(columnKey => {
                   const column = columns[columnKey];
-                  const Icon = column.icon;
+                  // Get the actual icon component based on the iconType string
+                  const Icon = iconComponents[column.iconType];
                   
                   return (
                     <div key={columnKey} className="flex-shrink-0 w-80">
@@ -333,7 +411,7 @@ const KanbanBoard = () => {
                                       onClick={() => handleCardClick(issue)}
                                     >
                                       <div className="flex items-start justify-between mb-2">
-                                        <span className="text-xs font-medium text-gray-500">#{issue.id}</span>
+                                        <span className="text-xs font-medium text-gray-500">#{issue.id.substring(0, 6)}</span>
                                         <span className={`text-xs px-2 py-1 rounded-full ${getPriorityClass(issue.priority)}`}>
                                           {issue.priority}
                                         </span>
@@ -343,7 +421,7 @@ const KanbanBoard = () => {
                                       </h3>
                                       <div className="mb-2">
                                         <span className={`text-xs px-2 py-1 rounded border ${getIssueTypeClass(issue.issueType)}`}>
-                                          {issue.issueType}
+                                          {issue.issueType.replace(/_/g, ' ')}
                                         </span>
                                       </div>
                                       <p className="text-sm text-gray-600">
@@ -355,7 +433,7 @@ const KanbanBoard = () => {
                                         </div>
                                         <div className="flex items-center">
                                           <div className="flex items-center justify-center w-6 h-6 text-xs font-medium bg-gray-300 rounded-full">
-                                            {issue.assignedTo.charAt(0)}
+                                            {issue.assignedTo?.charAt(0) || 'U'}
                                           </div>
                                         </div>
                                       </div>
@@ -376,7 +454,7 @@ const KanbanBoard = () => {
           </div>
         </div>
       ) : (
-        <TableView issues={issues} onRowClick={handleCardClick} />
+        <TableView issues={filteredIssues} onRowClick={handleCardClick} />
       )}
 
       {/* Modal for detailed issue view */}
@@ -384,7 +462,7 @@ const KanbanBoard = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-2xl p-6 bg-white rounded-lg">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">Issue #{selectedIssue.id}</h2>
+              <h2 className="text-xl font-bold">Issue #{selectedIssue.id.substring(0, 6)}</h2>
               <button 
                 className="text-gray-500 hover:text-gray-700"
                 onClick={() => setIsModalOpen(false)}
@@ -408,7 +486,7 @@ const KanbanBoard = () => {
                 <p className="text-sm text-gray-500">Issue Type</p>
                 <div>
                   <span className={`text-xs px-2 py-1 rounded border ${getIssueTypeClass(selectedIssue.issueType)}`}>
-                    {selectedIssue.issueType}
+                    {selectedIssue.issueType.replace(/_/g, ' ')}
                   </span>
                 </div>
               </div>
@@ -418,6 +496,14 @@ const KanbanBoard = () => {
                   {selectedIssue.priority}
                 </span>
               </div>
+              <div>
+                <p className="text-sm text-gray-500">Registration No</p>
+                <p className="font-medium">{selectedIssue.originalData?.studentRegistrationNo || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Contact No</p>
+                <p className="font-medium">{selectedIssue.originalData?.studentContactNo || 'N/A'}</p>
+              </div>
             </div>
             
             <div className="mb-4">
@@ -425,30 +511,23 @@ const KanbanBoard = () => {
               <p className="p-3 rounded bg-gray-50">{selectedIssue.issueMessage}</p>
             </div>
             
+            {selectedIssue.originalData?.issueAttachment && (
+              <div className="mb-4">
+                <p className="mb-1 text-sm text-gray-500">Attachment</p>
+                <a 
+                  href={selectedIssue.originalData.issueAttachment} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  View Attachment
+                </a>
+              </div>
+            )}
+            
             <div className="mb-4">
               <p className="mb-1 text-sm text-gray-500">Assigned To</p>
               <p>{selectedIssue.assignedTo}</p>
-            </div>
-            
-            <div className="mb-4">
-              <p className="mb-2 text-sm text-gray-500">Comments</p>
-              {selectedIssue.comments.length > 0 ? (
-                <div className="space-y-2">
-                  {selectedIssue.comments.map((comment, index) => (
-                    <div key={index} className="p-3 rounded bg-gray-50">
-                      <div className="flex justify-between">
-                        <p className="font-medium">{comment.author}</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(comment.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                      <p className="text-sm">{comment.message}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">No comments yet</p>
-              )}
             </div>
             
             <div className="flex justify-end mt-4 space-x-2">
