@@ -59,6 +59,7 @@ const KanbanBoard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState('kanban');
   const [isLoading, setIsLoading] = useState(true);
+  const [comment, setComment] = useState('');
 
   // Define which issue types each admin can see
   const adminIssueTypes = {
@@ -508,6 +509,17 @@ const KanbanBoard = () => {
               <p className="mb-1 text-sm text-gray-500">Assigned To</p>
               <p>{selectedIssue.assignedTo}</p>
             </div>
+
+            <div className="mb-4">
+              <p className="mb-1 text-sm text-gray-500">Resolution Message</p>
+              <textarea
+                className="w-full p-3 border rounded bg-gray-50"
+                rows={3}
+                placeholder="Add your resolution message or comments..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+            </div>
             
             <div className="flex justify-end mt-4 space-x-2">
               <button 
@@ -516,7 +528,45 @@ const KanbanBoard = () => {
               >
                 Close
               </button>
-              <button className="px-4 py-2 text-white bg-indigo-600 rounded hover:bg-indigo-700">
+              <button className="px-4 py-2 text-white bg-indigo-600 rounded hover:bg-indigo-700"
+                onClick={async () => {
+                  try {
+                    // Prepare the update data
+                    const updateData = {
+                      issueResolvedMessage: comment,
+                      issueResolvedBy: user?.Adminname || 'Admin',
+                      issueResolvedDate: new Date().toISOString()
+                    };
+                    
+                    // If status is Done, update that as well
+                    if (selectedIssue.issueStatus !== 'Done') {
+                      updateData.issueStatus = 'Done';
+                    }
+                    
+                    // Call the update endpoint
+                    const response = await axios.put(
+                      `http://localhost:8070/issue/updateIssue/${selectedIssue.originalData._id}`,
+                      updateData,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                        }
+                      }
+                    );
+                    
+                    if (response.data) {
+                      // Refresh the issues
+                      await fetchIssues();
+                      setIsModalOpen(false);
+                      setComment('');
+                    }
+                  } catch (error) {
+                    console.error('Error updating issue:', error);
+                    alert('Failed to update issue');
+                  }
+                }}
+              >
                 Update Issue
               </button>
             </div>
