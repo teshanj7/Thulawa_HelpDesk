@@ -68,15 +68,15 @@ const KanbanBoard = () => {
     Admin4: ['REQUEST_DOCUMENTS', 'OTHER_ISSUE']
   };
 
-  const apiStatusMapping = {
+  // Correct the status mappings to be consistent
+  const statusMappings = {
+    // Frontend column name -> API status
     'To Do': 'Open',
     'In Progress': 'In Progress',
     'Re Open': 'Re Open',
-    'Done': 'Done'
-  };
-
-  // Map API status to our column names
-  const statusMapping = {
+    'Done': 'Done',
+    
+    // API status -> Frontend column name
     'Open': 'To Do',
     'In Progress': 'In Progress',
     'Re Open': 'Re Open',
@@ -111,7 +111,7 @@ const KanbanBoard = () => {
           studentName: issue.studentName,
           issueType: issue.issueType,
           issueMessage: issue.issueMessage,
-          issueStatus: statusMapping[issue.issueStatus] || 'To Do',
+          issueStatus: statusMappings[issue.issueStatus] || 'To Do',
           createdAt: issue.issueCreatedDate,
           priority: priorityMapping[issue.issuePriority] || 'Low',
           assignedTo: issue.issueResolvedBy || 'Unassigned',
@@ -188,9 +188,12 @@ const KanbanBoard = () => {
   // Update issue status in the database
   const updateIssueStatus = async (issueId, newStatus) => {
     try {
-      const response = await axios.patch(
+      const response = await axios.put(
         `http://localhost:8070/issue/updateIssueStatus/${issueId}`,
-        { issueStatus: apiStatusMapping[newStatus] },
+        { 
+          issueStatus: statusMappings[newStatus],
+          issueResolvedBy: user?.Adminname || 'Admin' // Add who is resolving it
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -198,7 +201,7 @@ const KanbanBoard = () => {
           }
         }
       );
-
+      console.log('Update response:', response.data);
       if (!response.data) {
         throw new Error('Failed to update issue status');
       }
@@ -221,16 +224,16 @@ const KanbanBoard = () => {
   const getIssueTypeClass = (type) => {
     switch (type) {
       case 'REGISTRATION_ISSUE': 
-      case 'PAYMENT_ISSUE':
+      case 'OTHER_ISSUE':
         return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'EXAMINATION_ISSUE':
-      case 'MODULE_CONTENT_ISSUE':
+      case 'CAMPUS_ENVIRONMENT_ISSUE':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'CONVOCATION_ISSUE':
-      case 'CAMPUS_ENVIRONMENT_ISSUE':
+      case 'MODULE_CONTENT_ISSUE':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'REQUEST_DOCUMENTS':
-      case 'OTHER_ISSUE':
+      case 'PAYMENT_ISSUE':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default: 
         return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -244,78 +247,54 @@ const KanbanBoard = () => {
   const onDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
 
-    if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
+    if (!destination || 
+        (destination.droppableId === source.droppableId && 
+        destination.index === source.index)) {
       return;
     }
 
     const sourceColumnKey = source.droppableId;
     const destColumnKey = destination.droppableId;
 
-    if (!columns[sourceColumnKey] || !columns[destColumnKey]) {
-      console.error('Column not found:', { source: sourceColumnKey, destination: destColumnKey });
-      return;
-    }
+    // Find the issue being moved
+    const issue = issues.find(i => i.id === draggableId);
+    if (!issue) return;
 
-    // Create a fresh copy of the columns object without using JSON.stringify/parse
-    const newColumns = { ...columns };
-    
-    // Properly copy each column
-    Object.keys(newColumns).forEach(key => {
-      newColumns[key] = {
-        ...newColumns[key],
-        issueIds: [...newColumns[key].issueIds]
-      };
-    });
-    
-    // Make a fresh copy of issues
-    const newIssues = issues.map(issue => ({ ...issue }));
+    // Create new state objects
+    const newColumns = JSON.parse(JSON.stringify(columns));
+    const newIssues = [...issues];
 
     // Remove from source column
-    const sourceIssueIds = newColumns[sourceColumnKey].issueIds;
-    sourceIssueIds.splice(source.index, 1);
+    newColumns[sourceColumnKey].issueIds = newColumns[sourceColumnKey].issueIds.filter(id => id !== draggableId);
     
-    // Add to destination column
-    const destIssueIds = newColumns[destColumnKey].issueIds;
-    destIssueIds.splice(destination.index, 0, draggableId);
+    // Add to destination column at the correct position
+    newColumns[destColumnKey].issueIds.splice(destination.index, 0, draggableId);
 
     // Update issue status in issues array
-    const issueIndex = newIssues.findIndex(issue => issue.id === draggableId);
+    const issueIndex = newIssues.findIndex(i => i.id === draggableId);
     if (issueIndex !== -1) {
       newIssues[issueIndex] = {
         ...newIssues[issueIndex],
         issueStatus: destColumnKey
       };
-      
-      // Also update the originalData's issueStatus to match backend format
-      if (newIssues[issueIndex].originalData) {
-        newIssues[issueIndex].originalData = {
-          ...newIssues[issueIndex].originalData,
-          issueStatus: apiStatusMapping[destColumnKey] || newIssues[issueIndex].originalData.issueStatus
-        };
-      }
     }
 
-    // Apply optimistic update
+    // Optimistic update
     setColumns(newColumns);
     setIssues(newIssues);
 
     try {
-      // Find the full issue to get the database _id
-      const issue = issues.find(i => i.id === draggableId);
-      if (!issue) {
-        throw new Error('Issue not found in local state');
-      }
-
-      // Use the original _id from the issue's originalData
+      // Use the original MongoDB _id from the issue data
       const dbId = issue.originalData?._id || draggableId;
       
+      // Update in backend
       await updateIssueStatus(dbId, destColumnKey);
       
-      // Refresh data to ensure sync with backend
+      // Optional: refresh data from server to ensure sync
       await fetchIssues();
     } catch (error) {
       console.error('Failed to update status, reverting UI', error);
-      // Revert to previous state
+      // Revert to previous state if update fails
       setColumns(columns);
       setIssues(issues);
     }
