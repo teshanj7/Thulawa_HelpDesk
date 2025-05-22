@@ -62,13 +62,8 @@ export default function Profile() {
                 </div>
             </div>
 
-            {/* Heading */}
-            <div className="py-4 text-center">
-                <h1 className="font-popins text-5xl text-black font-aldrich">Your User Profile</h1>
-            </div>
-
             <div className="flex justify-center">
-                <div className="w-full max-w-4xl overflow-hidden bg-white rounded-lg shadow-lg">
+                <div className="w-full max-w-4xl overflow-hidden bg-white rounded-lg shadow-lg mt-5">
                     <div className="md:flex">
                         <div className="md:w-1/3">
                             <img src={usercardpic} alt="Astronaut" className="object-cover w-full h-full" />

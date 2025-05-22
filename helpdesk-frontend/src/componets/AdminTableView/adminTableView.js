@@ -45,7 +45,7 @@ const TableView = ({ issues, onRowClick }) => {
               Assigned To
             </th>
             <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-              Customer
+              Student
             </th>
             <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
               Priority
@@ -63,7 +63,7 @@ const TableView = ({ issues, onRowClick }) => {
                 {issue.id}
               </td>
               <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                {issue.studentName}
+                {issue.issueType}
               </td>
               <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                 <div className="flex items-center">
