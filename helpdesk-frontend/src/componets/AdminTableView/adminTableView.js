@@ -1,4 +1,4 @@
-import { Clock, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Clock, AlertCircle, CheckCircle, RefreshCw, Eye } from 'lucide-react';
 
 const TableView = ({ issues, onRowClick }) => {
   const getStatusIcon = (status) => {
@@ -11,13 +11,17 @@ const TableView = ({ issues, onRowClick }) => {
     }
   };
 
-  const getPriorityClass = (priority) => {
-    switch (priority) {
-      case 'Critical': return 'bg-red-500 text-white';
-      case 'High': return 'bg-orange-500 text-white';
-      case 'Medium': return 'bg-yellow-500';
-      case 'Low': return 'bg-green-500';
-      default: return 'bg-gray-500';
+  const getIssueTypeDisplay = (issueType) => {
+    switch (issueType) {
+      case 'REQUEST_DOCUMENTS': return 'Document Request';
+      case 'CONVOCATION_ISSUE': return 'Convocation';
+      case 'CAMPUS_ENVIRONMENT_ISSUE': return 'Campus Environment';
+      case 'MODULE_CONTENT_ISSUE': return 'Module Content';
+      case 'OTHER_ISSUE': return 'Other';
+      case 'REGISTRATION_ISSUE': return 'Registration';
+      case 'EXAMINATION_ISSUE': return 'Exam';
+      case 'PAYMENT_ISSUE': return 'Payment';
+      default: return issueType.replace(/_/g, ' ');
     }
   };
 
@@ -30,16 +34,10 @@ const TableView = ({ issues, onRowClick }) => {
               ID
             </th>
             <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-              Subject
+              Issue Type
             </th>
             <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
               Status
-            </th>
-            <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-              First Response
-            </th>
-            <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-              Resolution
             </th>
             <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
               Assigned To
@@ -48,7 +46,7 @@ const TableView = ({ issues, onRowClick }) => {
               Student
             </th>
             <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-              Priority
+              Action
             </th>
           </tr>
         </thead>
@@ -57,13 +55,12 @@ const TableView = ({ issues, onRowClick }) => {
             <tr 
               key={issue.id} 
               className="cursor-pointer hover:bg-gray-50"
-              onClick={() => onRowClick(issue)}
             >
               <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
-                {issue.id}
+                {issue.issueKey || `UH-${String(Math.floor(Math.random() * 90000) + 10000)}`}
               </td>
               <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                {issue.issueType}
+                {getIssueTypeDisplay(issue.issueType)}
               </td>
               <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                 <div className="flex items-center">
@@ -72,21 +69,19 @@ const TableView = ({ issues, onRowClick }) => {
                 </div>
               </td>
               <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                in 8 hours
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                in 4 days
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                 {issue.assignedTo}
               </td>
               <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                 {issue.studentName}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 py-1 text-xs rounded-full ${getPriorityClass(issue.priority)}`}>
-                  {issue.priority}
-                </span>
+              <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                <button
+                  onClick={() => onRowClick(issue)}
+                  className="flex items-center justify-center w-8 h-8 text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 transition-colors"
+                  title="View Details"
+                >
+                  <Eye size={16} />
+                </button>
               </td>
             </tr>
           ))}
