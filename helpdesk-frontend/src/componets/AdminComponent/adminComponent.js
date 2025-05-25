@@ -107,18 +107,24 @@ const KanbanBoard = () => {
         );
         
         // Transform API data to match our expected format
-        const transformedIssues = filtered.map(issue => ({
-          id: issue._id,
-          studentName: issue.studentName,
-          issueType: issue.issueType,
-          issueMessage: issue.issueMessage,
-          issueStatus: statusMappings[issue.issueStatus] || 'To Do',
-          createdAt: issue.issueCreatedDate,
-          priority: priorityMapping[issue.issuePriority] || 'Low',
-          assignedTo: issue.issueResolvedBy || 'Unassigned',
-          comments: [], // You might want to map comments if available
-          originalData: issue // Keep original data for reference
-        }));
+        const transformedIssues = filtered.map((issue, index) => {
+          // Generate a unique 5-digit number for each issue
+          const uniqueNumber = String(Math.floor(Math.random() * 90000) + 10000);
+          
+          return {
+            id: issue._id,
+            issueKey: `#UH-${uniqueNumber}`, // Generate unique 5-digit number
+            studentName: issue.studentName,
+            issueType: issue.issueType,
+            issueMessage: issue.issueMessage,
+            issueStatus: statusMappings[issue.issueStatus] || 'To Do',
+            createdAt: issue.issueCreatedDate,
+            priority: priorityMapping[issue.issuePriority] || 'Low',
+            assignedTo: issue.issueResolvedBy || 'Unassigned',
+            comments: [], // You might want to map comments if available
+            originalData: issue // Keep original data for reference
+          };
+        });
 
         setIssues(transformedIssues);
         setFilteredIssues(transformedIssues);
@@ -344,35 +350,41 @@ const KanbanBoard = () => {
       </div>
 
       {viewMode === 'kanban' ? (
-        <div className="flex justify-center">
-          <div className="w-full max-w-8xl">
-            <DragDropContext onDragEnd={onDragEnd}>
-              <div className="flex h-full pb-4 space-x-4 overflow-x-auto">
-                {Object.keys(columns).map(columnKey => {
-                  const column = columns[columnKey];
-                  // Get the actual icon component based on the iconType string
-                  const Icon = iconComponents[column.iconType];
-                  
-                  return (
-                    <div key={columnKey} className="flex-shrink-0 w-80">
-                      <div className={`rounded-t-lg ${column.headerColor} p-3 border-b border-l border-r border-t flex items-center justify-between`}>
-                        <div className="flex items-center">
-                          <Icon size={18} className="mr-2" />
-                          <h2 className="font-semibold">{column.title}</h2>
-                        </div>
-                        <div className="px-2 py-1 text-xs font-medium bg-white border border-gray-300 rounded-full">
-                          {column.issueIds.length}
-                        </div>
+        <div className="w-full">
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div className="grid grid-cols-4 gap-4">
+              {Object.keys(columns).map(columnKey => {
+                const column = columns[columnKey];
+                // Get the actual icon component based on the iconType string
+                const Icon = iconComponents[column.iconType];
+                
+                return (
+                  <div key={columnKey} className="flex flex-col">
+                    <div className={`rounded-t-lg ${column.headerColor} p-3 border-b border-l border-r border-t flex items-center justify-between flex-shrink-0`}>
+                      <div className="flex items-center">
+                        <Icon size={18} className="mr-2" />
+                        <h2 className="font-semibold">{column.title}</h2>
                       </div>
-                      
-                      <Droppable droppableId={columnKey}>
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className={`bg-gray-50 rounded-b-lg p-2 min-h-[500px] border-b border-l border-r ${
-                              snapshot.isDraggingOver ? 'bg-blue-50' : ''
-                            }`}
+                      <div className="px-2 py-1 text-xs font-medium bg-white border border-gray-300 rounded-full">
+                        {column.issueIds.length}
+                      </div>
+                    </div>
+                    
+                    <Droppable droppableId={columnKey}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          className={`bg-gray-50 rounded-b-lg border-b border-l border-r h-[500px] ${
+                            snapshot.isDraggingOver ? 'bg-blue-50' : ''
+                          }`}
+                        >
+                          <div 
+                            className="p-2 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400"
+                            style={{
+                              scrollbarWidth: 'thin',
+                              scrollbarColor: 'rgb(209 213 219) transparent'
+                            }}
                           >
                             {column.issueIds.map((issueId, index) => {
                               const issue = issues.find(i => i.id === issueId);
@@ -391,7 +403,7 @@ const KanbanBoard = () => {
                                       onClick={() => handleCardClick(issue)}
                                     >
                                       <div className="flex items-start justify-between mb-2">
-                                        <span className="text-xs font-medium text-gray-500">#{issue.id.substring(0, 6)}</span>
+                                        <span className="text-xs font-medium text-gray-500">{issue.issueKey}</span>
                                         <span className={`text-xs px-2 py-1 rounded-full ${getPriorityClass(issue.priority)}`}>
                                           {issue.priority}
                                         </span>
@@ -424,14 +436,14 @@ const KanbanBoard = () => {
                             })}
                             {provided.placeholder}
                           </div>
-                        )}
-                      </Droppable>
-                    </div>
-                  );
-                })}
-              </div>
-            </DragDropContext>
-          </div>
+                        </div>
+                      )}
+                    </Droppable>
+                  </div>
+                );
+              })}
+            </div>
+          </DragDropContext>
         </div>
       ) : (
         <TableView issues={filteredIssues} onRowClick={handleCardClick} />
@@ -442,7 +454,7 @@ const KanbanBoard = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-2xl p-6 bg-white rounded-lg">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">Issue #{selectedIssue.id.substring(0, 6)}</h2>
+              <h2 className="text-xl font-bold">Issue {selectedIssue.issueKey}</h2>
               <button 
                 className="text-gray-500 hover:text-gray-700"
                 onClick={() => setIsModalOpen(false)}
@@ -573,6 +585,44 @@ const KanbanBoard = () => {
           </div>
         </div>
       )}
+
+      {/* Add custom scrollbar styles */}
+      <style jsx>{`
+        /* Webkit browsers */
+        .scrollbar-thin::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background-color: rgb(209 213 219);
+          border-radius: 3px;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        
+        .scrollbar-thin:hover::-webkit-scrollbar-thumb {
+          opacity: 1;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+          background-color: rgb(156 163 175);
+        }
+        
+        /* Show scrollbar on scroll */
+        .scrollbar-thin::-webkit-scrollbar-thumb:vertical {
+          opacity: 0;
+        }
+        
+        .scrollbar-thin:hover::-webkit-scrollbar-thumb:vertical,
+        .scrollbar-thin:focus::-webkit-scrollbar-thumb:vertical,
+        .scrollbar-thin:active::-webkit-scrollbar-thumb:vertical {
+          opacity: 1;
+        }
+      `}</style>
     </div>
   );
 };
