@@ -98,11 +98,11 @@ export default function ViewIssueComponent() {
             };
 
             const response = await axios.put(
-                `http://localhost:8070/issue/updateIssueStatus/${selectedIssue._id}`,
+                http://localhost:8070/issue/updateIssueStatus/${selectedIssue._id},
                 updateData,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
+                        Authorization: Bearer ${token},
                         'Content-Type': 'application/json'
                     }
                 }
@@ -182,7 +182,7 @@ export default function ViewIssueComponent() {
                                         <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item._id}</td>
                                         <td className="px-6 py-4 text-sm text-gray-900 uppercase whitespace-nowrap">{item.studentRegistrationNo}</td>
                                         <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                                            <span className={`text-xs px-2 py-1 rounded border ${getIssueTypeClass(item.issueType)}`}>
+                                            <span className={text-xs px-2 py-1 rounded border ${getIssueTypeClass(item.issueType)}}>
                                                 {item.issueType.replace(/_/g, ' ')}
                                             </span>
                                         </td>
@@ -271,7 +271,7 @@ export default function ViewIssueComponent() {
                             <div>
                                 <p className="text-sm text-gray-500">Issue Type</p>
                                 <div>
-                                    <span className={`text-xs px-2 py-1 rounded border ${getIssueTypeClass(selectedIssue.issueType)}`}>
+                                    <span className={text-xs px-2 py-1 rounded border ${getIssueTypeClass(selectedIssue.issueType)}}>
                                         {selectedIssue.issueType.replace(/_/g, ' ')}
                                     </span>
                                 </div>

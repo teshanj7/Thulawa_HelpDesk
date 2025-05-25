@@ -87,7 +87,7 @@ issue_samples = [
         "studentFaculty": "Law",
         "studentCampus": "West Campus",
         "studentContactNo": "9456789012",
-        "issueType": "REGISTRATION_ISSUE",
+        "issueType": "CONVOCATION_ISSUE",
         "issueMessage": "Unable to register for new semester courses.",
         "issueAttachment": None,
         "issueStatus": "Pending",
@@ -102,6 +102,7 @@ issue_samples = [
 # Start time
 start_time = time.time()
 duration = 60  # Run for 1 minute
+issue_count = 0
 
 # Run the loop for 1 minute
 while time.time() - start_time < duration:
@@ -115,6 +116,7 @@ while time.time() - start_time < duration:
         # Print the response
         if response.status_code == 200:
             print("Issue created successfully:", response.json())
+            issue_count += 1
         else:
             print("Failed to create issue:", response.status_code, response.text)
 
@@ -124,4 +126,4 @@ while time.time() - start_time < duration:
     # Wait 1 second before the next request
     time.sleep(1)
 
-print("Script execution completed.")
+print(f"Script execution completed. Total issues created: {issue_count}")
